@@ -1,0 +1,432 @@
+blueprint:
+  name: SirYasko's LXEK-5/ZBEK-26 v1.0
+  description: >
+    Control lights via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
+    (HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html)
+  domain: automation
+  author: SirYasko
+  
+  input:
+    i__remote:
+      name: (Required) Adeo LXEK-5/ZBEK-26 remote control
+      description: Select the remote control you wish to use.
+      selector:
+        device:
+          filter:
+            - integration: zha
+              model: LXEK-5
+            - integration: zha
+              model: ZBEK-26
+
+    i__lights:
+      name: (Required) Light(s)
+      description: Select the light entity you wish to control (max 4 lights or groups). The order of entities corresponds the scene buttons).
+      selector:
+        entity:
+          domain:
+          - light
+          multiple: true
+    
+    i__helper:
+      name: (Required) Helper
+      description: "Select the helper to store selected light source: Settings -> Devices & Services -> Helpers -> Add helper -> Text (name: any, icon: any, min length: 0, max length: 1000, mode: text, pattern regex: empty)."
+      selector:
+        entity:
+          domain:
+          - input_text
+          multiple: false
+    
+    i__brightness_desc:
+      name: " "
+      description: "# Brightness"
+      default: ""
+      selector:
+        qr_code:
+          data: ""
+          scale: 0
+          error_correction_level: low 
+        
+    i__brightness_step:
+      name: (Optional) Brightness step
+      description: Brightness change step.
+      default: 35
+      selector:
+        number:
+          min: 1
+          max: 255
+          step: 1 
+          
+    i__brightness_min:
+      name: (Optional) Minimum brightness value
+      description: Number indicating minimum brightness, where 0 turns the light off, 1 is the minimum brightness, and 255 is the maximum brightness.
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 255
+          step: 1 
+
+    i__brightness_max:
+      name: (Optional) Maximum brightness value
+      description: Number indicating maximum brightness, where 0 turns the light off, 1 is the minimum brightness, and 255 is the maximum brightness.
+      default: 255
+      selector:
+        number:
+          min: 0
+          max: 255
+          step: 1 
+
+    i__brightness_double_on:
+      name: (Optional) Set maximum brightness on double on.
+      description: Set the brightness (maximum brightness value) when the light is already turned on and turned on again.
+      default: true
+      selector:
+        boolean:
+
+    i__brightness_double_off:
+      name: (Optional) Set minimum brightness on double off.
+      description: Set the brightness (minimum brightness value) when the light is already turned off and turned off on again.
+      default: true
+      selector:
+        boolean:
+        
+    i__brightness_transition_time:
+      name: (Optional) Brightness transition time
+      description: Duration it takes to get to next state.
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 60
+          step: 0.1          
+          unit_of_measurement: "seconds"
+ 
+    i__brightness_force:
+      name: (Optional) Force brightness value at turn on
+      description: Force brightness value when the light is being turned on.
+      default: false
+      selector:
+        boolean:
+        
+    i__brightness_force_value:
+      name: (Optional) Force brightness value
+      description: Brightness value to force when turning on the light.
+      default: 5
+      selector:
+        number:
+          min: 0
+          max: 255
+          step: 1
+          mode: slider
+        
+    i__color_desc:
+      name: " "
+      description: "# Color temperature"
+      default: ""
+      selector:
+        qr_code:
+          data: ""
+          scale: 0
+          error_correction_level: low 
+    
+    i__color_force:
+      name: (Optional) Force color temperature value at turn on
+      description: Force color temperature value when the light is being turned on.
+      default: false
+      selector:
+        boolean:
+        
+    i__color_force_value:
+      name: (Optional) Force color temperature value at turn on
+      description: Color temperature when turning on the light in mireds.
+      default: 326
+      selector:
+        color_temp:
+          min: 153
+          max: 500
+          unit: "mired"
+          
+    i__color_step:
+      name: (Optional) Color temperature step
+      description: Color temperature change step in mireds.
+      default: 25
+      selector:
+        number:
+          min: 1
+          max: 347
+          unit_of_measurement: "mireds"
+         
+    i__color_transition_time:
+      name: (Optional) Color transition time
+      description: Duration it takes to get to next state.
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 60
+          step: 0.1          
+          unit_of_measurement: "seconds"
+
+    i__hs_desc:
+      name: " "
+      description: "# Hue & Saturation"
+      default: ""
+      selector:
+        qr_code:
+          data: ""
+          scale: 0
+          error_correction_level: low 
+
+    i__hue_transition_time:
+      name: (Optional) Hue transition time
+      description: Duration it takes to get to next state.
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 60
+          step: 0.1          
+          unit_of_measurement: "seconds"
+ 
+    i__saturation_transition_time:
+      name: (Optional) Saturation transition time
+      description: Duration it takes to get to next state.
+      default: 0.5
+      selector:
+        number:
+          min: 0
+          max: 60
+          step: 0.1          
+          unit_of_measurement: "seconds"
+          
+  source_url: https://community.home-assistant.io/
+  
+mode: restart
+max_exceeded: silent
+
+variables:
+  v__lights:                     !input i__lights
+  v__selected_light:             !input i__helper 
+         
+  v__brightness_step:            !input i__brightness_step
+  v__brightness_min:             !input i__brightness_min
+  v__brightness_max:             !input i__brightness_max
+  v__brightness_double_on:       !input i__brightness_double_on
+  v__brightness_double_off:      !input i__brightness_double_off
+  v__brightness_transition_time: !input i__brightness_transition_time
+  v__brightness_force:           !input i__brightness_force
+  v__brightness_force_value:     !input i__brightness_force_value
+
+  v__color_force:                !input i__color_force
+  v__color_force_value:          !input i__color_force_value
+  v__color_step:                 !input i__color_step
+  v__color_transition_time:      !input i__color_transition_time
+  
+  v__hue_transition_time:        !input i__hue_transition_time
+  v__saturation_transition_time: !input i__saturation_transition_time
+  
+trigger:
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_id: !input i__remote
+    
+action:
+- choose:
+  - conditions:
+    - condition: template
+      value_template: "{{ v__lights | length > 4 }}"  # Sprawdź, czy liczba świateł jest większa niż 4
+    sequence:
+      - service: persistent_notification.create
+        data:
+          title: "Too many lights selected"
+          message: "Please select up to 4 lights only."
+    
+# Supported actions: on & off
+  # on button
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "on" }}'
+    sequence:
+    - variables:
+        v__brightness: '{% if v__brightness_force and (state_attr(states(v__selected_light), "brightness") or 0 ) | int == 0  %} {{ v__brightness_force_value | int }} {% elif v__brightness_double_on and (state_attr(states(v__selected_light), "brightness") or 0) | int  > 0%} {{ v__brightness_max | int }} {% else %} none {% endif %}'
+        v__transition: '{% if v__brightness_transition_time %} {{ v__brightness_transition_time }} {% else %} none {% endif %}' 
+        v__color_temp: '{% if v__color_force %} {{ v__color_force_value | int }} {% else %} none {% endif %}'
+        v__data: >
+          {
+          {% if v__brightness | is_number %}
+          "brightness": "{{ v__brightness }}",
+          {% endif %}
+          {% if v__color_temp | is_number %}
+          "color_temp": "{{ v__color_temp }}",
+          {% endif %}
+          {% if v__transition | is_number %}
+          "transition": "{{ v__transition }}",
+          {% endif %}
+          }
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data: '{{ v__data }}'
+
+  # off button       
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "off" and (state_attr(states(v__selected_light), "brightness") or 0 ) | int > 0 }}'
+    sequence:
+    - service: light.turn_off
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "off" and (state_attr(states(v__selected_light), "brightness") or 0 ) | int == 0 }}'
+    sequence:
+    - variables:
+        v__brightness: '{{ (state_attr(states(v__selected_light), "brightness") or 0 ) }}' 
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        brightness: '{{ v__brightness_min }}'
+        
+  #brightness up / down buttons      
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step" and trigger.event.data.args[0] == 0 }}' 
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        brightness: "{% if (state_attr(states(v__selected_light), \"brightness\")) | int + v__brightness_step >= v__brightness_max %}\n {{ v__brightness_max }}\n{% else %}\n {{ (state_attr(states(v__selected_light), \"brightness\")) | int + v__brightness_step }}\n{% endif %}"
+        transition: '{{ v__brightness_transition_time }}'
+            
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step" and trigger.event.data.args[0] == 1 }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        brightness: "{% if (state_attr(states(v__selected_light), \"brightness\")) | int <= v__brightness_step %}\n {{ v__brightness_min }}\n{% else %}\n {{ (state_attr(states(v__selected_light), \"brightness\")) | int - v__brightness_step }}\n{% endif %}"
+        transition: '{{ v__brightness_transition_time }}'
+        
+  # color temperature up / down buttons
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step_color_temp" and trigger.event.data.args[0] == 1 }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        color_temp: "{% if state_attr(states(v__selected_light), \"color_temp\") + v__color_step > 500 %}\n \ {{ 500 }}\n{% else %}\n {{ state_attr(states(v__selected_light), \"color_temp\") + v__color_step }}\n{% endif %}"
+        transition: '{{ v__color_transition_time }}'
+        
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step_color_temp" and trigger.event.data.args[0] == 3 }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        color_temp: "{% if state_attr(states(v__selected_light), \"color_temp\") - v__color_step < 153 %}\n  {{ 153 }}\n{% else %}\n {{ state_attr(states(v__selected_light), \"color_temp\") - v__color_step }}\n{% endif %}"
+        transition: '{{ v__color_transition_time }}'
+ 
+  # color saturation up / down buttons (green led)
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step_saturation" and trigger.event.data.args[0] == 1 }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        #hs_color:
+        transition: '{{ v__saturation_transition_time }}'
+        
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step_saturation" and trigger.event.data.args[0] == 3 }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        #hs_color:
+        transition: '{{ v__saturation_transition_time }}'
+
+  # color hue right /left buttons (green led)
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step_hue" and trigger.event.data.args[0] == 1 }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        #hs_color:
+        transition: '{{ v__hue_transition_time }}'
+        
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "step_hue" and trigger.event.data.args[0] == 3 }}'
+    sequence:
+    - service: light.turn_on
+      target:
+        entity_id: '{{ states(v__selected_light) }}'
+      data:
+        #hs_color:
+        transition: '{{ v__hue_transition_time }}'
+        
+# scene1, scene2, scene3, scene4
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "view" and trigger.event.data.args[1] == 10 and v__lights[0] | length > 0 }}'
+    sequence:
+      - service: input_text.set_value
+        data:
+          entity_id: '{{ v__selected_light }}'
+          value: '{{ v__lights[0] }}'
+ 
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "view" and trigger.event.data.args[1] == 11 and v__lights[1] | length > 0 }}'
+    sequence:
+      - service: input_text.set_value
+        data:
+          entity_id: '{{ v__selected_light }}'
+          value: '{{ v__lights[1] }}'
+ 
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "view" and trigger.event.data.args[1] == 12 and v__lights[2] | length > 0 }}'
+    sequence:
+      - service: input_text.set_value
+        data:
+          entity_id: '{{ v__selected_light }}'
+          value: '{{ v__lights[2] }}'
+ 
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "view" and trigger.event.data.args[1] == 13 and v__lights[3] | length > 0 }}'
+    sequence:
+      - service: input_text.set_value
+        data:
+          entity_id: '{{ v__selected_light }}'
+          value: '{{ v__lights[3] }}'
+          
+  # - conditions:
+    # - condition: template
+      # value_template: '{{ trigger.event.data.command == "view" and trigger.event.data.args[1] == 14 }}'
+    # sequence:
+      # - service: persistent_notification.create
+        # data:
+          # title: Current source
+          # message: Current source '{{ states(v__selected_light) }}'
+     
+        
+  default: []
