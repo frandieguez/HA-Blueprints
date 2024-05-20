@@ -3,6 +3,7 @@ blueprint:
   description: >
     Control lights via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
     (HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html)
+  source_url: https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26-lights.yaml
   domain: automation
   author: SirYasko
   
