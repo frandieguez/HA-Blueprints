@@ -1,5 +1,5 @@
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 v1.0
+  name: SirYasko's LXEK-5/ZBEK-26 v1.1
   description: >
     Control lights via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
     (HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html)
@@ -9,8 +9,8 @@ blueprint:
   
   input:
     i__remote:
-      name: (Required) Adeo LXEK-5/ZBEK-26 remote control
-      description: Select the remote control you wish to use.
+      name: (Required) Adeo LXEK-5/ZBEK-26 remote controler
+      description: Select the remote controler you wish to use.
       selector:
         device:
           filter:
@@ -21,13 +21,13 @@ blueprint:
 
     i__lights:
       name: (Required) Light(s)
-      description: Select the light entity you wish to control (max 4 lights or groups). The order of entities corresponds the scene buttons).
+      description: Select the light entity you wish to control (max 4 lights or groups). The order of entities correspond to the scene buttons.
       selector:
         entity:
           domain:
           - light
           multiple: true
-    
+      
     i__helper:
       name: (Required) Helper
       description: "Select the helper to store selected light source: Settings -> Devices & Services -> Helpers -> Add helper -> Text (name: any, icon: any, min length: 0, max length: 1000, mode: text, pattern regex: empty)."
@@ -36,6 +36,66 @@ blueprint:
           domain:
           - input_text
           multiple: false
+          
+    i_light_type_1:
+      name: "(Required) Type of light #1"
+      description: "Choose the type of selected light #1"
+      selector:
+        select:
+          mode: dropdown 
+          options:
+            - label: On/Off only
+              value: ONOFF
+            - label: White with temperature and brightness support
+              value: WHITE
+            - label: Color with hue and saturation support
+              value: COLOR
+      default: WHITE
+ 
+    i_light_type_2:
+      name: "(Required) Type of light #2"
+      description: "Choose the type of selected light #2"
+      selector:
+        select:
+          mode: dropdown 
+          options:
+            - label: On/Off only
+              value: ONOFF
+            - label: White with temperature and brightness support
+              value: WHITE
+            - label: Color with hue and saturation support
+              value: COLOR
+      default: WHITE
+
+    i_light_type_3:
+      name: "(Required) Type of light #3"
+      description: "Choose the type of selected light #3"
+      selector:
+        select:
+          mode: dropdown 
+          options:
+            - label: On/Off only
+              value: ONOFF
+            - label: White with temperature and brightness support
+              value: WHITE
+            - label: Color with hue and saturation support
+              value: COLOR
+      default: WHITE
+
+    i_light_type_4:
+      name: "(Required) Type of light #4"
+      description: "Choose the type of selected light #4"
+      selector:
+        select:
+          mode: dropdown 
+          options:
+            - label: On/Off only
+              value: ONOFF
+            - label: White with temperature and brightness support
+              value: WHITE
+            - label: Color with hue and saturation support
+              value: COLOR
+      default: WHITE
     
     i__brightness_desc:
       name: " "
@@ -199,16 +259,18 @@ blueprint:
           max: 60
           step: 0.1          
           unit_of_measurement: "seconds"
-          
-  source_url: https://community.home-assistant.io/
-  
+
 mode: restart
 max_exceeded: silent
 
 variables:
   v__lights:                     !input i__lights
   v__selected_light:             !input i__helper 
-         
+  v__light_type_1:               !input i_light_type_1  
+  v__light_type_2:               !input i_light_type_2
+  v__light_type_3:               !input i_light_type_3 
+  v__light_type_4:               !input i_light_type_4 
+  
   v__brightness_step:            !input i__brightness_step
   v__brightness_min:             !input i__brightness_min
   v__brightness_max:             !input i__brightness_max
@@ -250,7 +312,7 @@ action:
       value_template: '{{ trigger.event.data.command == "on" }}'
     sequence:
     - variables:
-        v__brightness: '{% if v__brightness_force and (state_attr(states(v__selected_light), "brightness") or 0 ) | int == 0  %} {{ v__brightness_force_value | int }} {% elif v__brightness_double_on and (state_attr(states(v__selected_light), "brightness") or 0) | int  > 0%} {{ v__brightness_max | int }} {% else %} none {% endif %}'
+        v__brightness: '{% if v__brightness_force and (state_attr((states(v__selected_light) | from_json).entity, "brightness") or 0 ) | int == 0  %} {{ v__brightness_force_value | int }} {% elif v__brightness_double_on and (state_attr((states(v__selected_light) | from_json).entity, "brightness") or 0) | int  > 0%} {{ v__brightness_max | int }} {% else %} none {% endif %}'
         v__transition: '{% if v__brightness_transition_time %} {{ v__brightness_transition_time }} {% else %} none {% endif %}' 
         v__color_temp: '{% if v__color_force %} {{ v__color_force_value | int }} {% else %} none {% endif %}'
         v__data: >
@@ -267,27 +329,35 @@ action:
           }
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+       entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data: '{{ v__data }}'
 
-  # off button       
+  # off button 
   - conditions:
     - condition: template
-      value_template: '{{ trigger.event.data.command == "off" and (state_attr(states(v__selected_light), "brightness") or 0 ) | int > 0 }}'
+      value_template: '{{ trigger.event.data.command == "off" and (states(v__selected_light) | from_json).type == "ONOFF" }}'
     sequence:
     - service: light.turn_off
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
+        
+  - conditions:
+    - condition: template
+      value_template: '{{ trigger.event.data.command == "off" and (states(v__selected_light) | from_json).type != "ONOFF" and (state_attr((states(v__selected_light) | from_json).entity, "brightness") or 0 ) | int > 0 }}'
+    sequence:
+    - service: light.turn_off
+      target:
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
 
   - conditions:
     - condition: template
-      value_template: '{{ trigger.event.data.command == "off" and (state_attr(states(v__selected_light), "brightness") or 0 ) | int == 0 }}'
+      value_template: '{{ trigger.event.data.command == "off" and (states(v__selected_light) | from_json).type != "ONOFF" and (state_attr((states(v__selected_light) | from_json).entity, "brightness") or 0 ) | int == 0 }}'
     sequence:
     - variables:
-        v__brightness: '{{ (state_attr(states(v__selected_light), "brightness") or 0 ) }}' 
+        v__brightness: '{{ (state_attr((states(v__selected_light) | from_json).entity, "brightness") or 0 ) }}' 
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
         brightness: '{{ v__brightness_min }}'
         
@@ -298,9 +368,9 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
-        brightness: "{% if (state_attr(states(v__selected_light), \"brightness\")) | int + v__brightness_step >= v__brightness_max %}\n {{ v__brightness_max }}\n{% else %}\n {{ (state_attr(states(v__selected_light), \"brightness\")) | int + v__brightness_step }}\n{% endif %}"
+        brightness: "{% if (state_attr((states(v__selected_light) | from_json).entity, \"brightness\")) | int + v__brightness_step >= v__brightness_max %}\n {{ v__brightness_max }}\n{% else %}\n {{ (state_attr((states(v__selected_light) | from_json).entity, \"brightness\")) | int + v__brightness_step }}\n{% endif %}"
         transition: '{{ v__brightness_transition_time }}'
             
   - conditions:
@@ -309,9 +379,9 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
-        brightness: "{% if (state_attr(states(v__selected_light), \"brightness\")) | int <= v__brightness_step %}\n {{ v__brightness_min }}\n{% else %}\n {{ (state_attr(states(v__selected_light), \"brightness\")) | int - v__brightness_step }}\n{% endif %}"
+        brightness: "{% if (state_attr((states(v__selected_light) | from_json).entity, \"brightness\")) | int <= v__brightness_step %}\n {{ v__brightness_min }}\n{% else %}\n {{ (state_attr((states(v__selected_light) | from_json).entity, \"brightness\")) | int - v__brightness_step }}\n{% endif %}"
         transition: '{{ v__brightness_transition_time }}'
         
   # color temperature up / down buttons
@@ -321,9 +391,9 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
-        color_temp: "{% if state_attr(states(v__selected_light), \"color_temp\") + v__color_step > 500 %}\n \ {{ 500 }}\n{% else %}\n {{ state_attr(states(v__selected_light), \"color_temp\") + v__color_step }}\n{% endif %}"
+        color_temp: "{% if state_attr((states(v__selected_light) | from_json).entity, \"color_temp\") + v__color_step > 500 %}\n \ {{ 500 }}\n{% else %}\n {{ state_attr((states(v__selected_light) | from_json).entity, \"color_temp\") + v__color_step }}\n{% endif %}"
         transition: '{{ v__color_transition_time }}'
         
   - conditions:
@@ -332,9 +402,9 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
-        color_temp: "{% if state_attr(states(v__selected_light), \"color_temp\") - v__color_step < 153 %}\n  {{ 153 }}\n{% else %}\n {{ state_attr(states(v__selected_light), \"color_temp\") - v__color_step }}\n{% endif %}"
+        color_temp: "{% if state_attr((states(v__selected_light) | from_json).entity, \"color_temp\") - v__color_step < 153 %}\n  {{ 153 }}\n{% else %}\n {{ state_attr((states(v__selected_light) | from_json).entity, \"color_temp\") - v__color_step }}\n{% endif %}"
         transition: '{{ v__color_transition_time }}'
  
   # color saturation up / down buttons (green led)
@@ -344,7 +414,7 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
         #hs_color:
         transition: '{{ v__saturation_transition_time }}'
@@ -355,7 +425,7 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
         #hs_color:
         transition: '{{ v__saturation_transition_time }}'
@@ -367,7 +437,7 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
         #hs_color:
         transition: '{{ v__hue_transition_time }}'
@@ -378,7 +448,7 @@ action:
     sequence:
     - service: light.turn_on
       target:
-        entity_id: '{{ states(v__selected_light) }}'
+        entity_id: "{{ (states(v__selected_light) | from_json).entity }}"
       data:
         #hs_color:
         transition: '{{ v__hue_transition_time }}'
@@ -391,7 +461,7 @@ action:
       - service: input_text.set_value
         data:
           entity_id: '{{ v__selected_light }}'
-          value: '{{ v__lights[0] }}'
+          value: "{{ {'entity': v__lights[0], 'type': v__light_type_1} | tojson }}"
  
   - conditions:
     - condition: template
@@ -400,7 +470,7 @@ action:
       - service: input_text.set_value
         data:
           entity_id: '{{ v__selected_light }}'
-          value: '{{ v__lights[1] }}'
+          value: "{{ {'entity': v__lights[1], 'type': v__light_type_2} | tojson }}"
  
   - conditions:
     - condition: template
@@ -409,7 +479,7 @@ action:
       - service: input_text.set_value
         data:
           entity_id: '{{ v__selected_light }}'
-          value: '{{ v__lights[2] }}'
+          value: "{{ {'entity': v__lights[2], 'type': v__light_type_3} | tojson }}"
  
   - conditions:
     - condition: template
@@ -418,7 +488,7 @@ action:
       - service: input_text.set_value
         data:
           entity_id: '{{ v__selected_light }}'
-          value: '{{ v__lights[3] }}'
+          value: "{{ {'entity': v__lights[3], 'type': v__light_type_4} | tojson }}"
           
   # - conditions:
     # - condition: template
@@ -427,7 +497,7 @@ action:
       # - service: persistent_notification.create
         # data:
           # title: Current source
-          # message: Current source '{{ states(v__selected_light) }}'
+          # message: Current source "{{ (states(v__selected_light) | from_json).entity }}"
      
         
   default: []
