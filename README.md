@@ -1,4 +1,5 @@
-<h3> Blueprints for automation Home Assistant </h3>
+<img src="https://avatars.githubusercontent.com/u/13844975?s=200&amp;v=4" width="64" height="64" alt="@home-assistant"> 
+<h2> Blueprints for automation Home Assistant </h2> 
 
 <p>
 <b>zha-adeo-lxek5-zbek26.yaml</b> - allows you to use the <b>Adeo LXEK-5/ZBEK-26</b> remote controler</br>
