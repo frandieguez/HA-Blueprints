@@ -4,14 +4,15 @@ variables:
     - scene
             
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 buttons v1.0
+  name: SirYasko's LXEK-5/ZBEK-26 buttons v1.1
   description: |
     Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
-    (HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html)
-  source_url: https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26-lights.yaml
+    HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html
+    ![Device Image](https://github.com/SirYasko/HA-Blueprints/raw/main/zha-adeo-lxek5-zbek26.png)
+  source_url: https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26-btn.yaml
   domain: automation
   author: SirYasko
-        
+
   input:
     i__debug:
       name: " "
@@ -24,7 +25,7 @@ blueprint:
           error_correction_level: low 
           
     i__debug_f:
-      name: (Required) Send debug notifications to HA
+      name: Send debug notifications to HA
       description: Disabled by default
       default: false
       selector:
@@ -41,8 +42,8 @@ blueprint:
           error_correction_level: low 
           
     i__remote:
-      name: (Required) Adeo LXEK-5/ZBEK-26 remote controler
-      description: Select the remote controler you wish to use.
+      name: (Required) Adeo LXEK-5/ZBEK-26 remote controller
+      description: Select the remote controller you wish to use.
       selector:
         device:
           filter:
@@ -228,15 +229,6 @@ action:
   default: []
   
 - choose:
-  - conditions:
-    - condition: template
-      value_template: '{{ v__entities | length > 4 }}' 
-    sequence:
-      - service: persistent_notification.create
-        data:
-          title: 'Too many entities added'
-          message: 'Please select up to 4 entities only.'
-
 #ON button
   - conditions:
     - condition: template
@@ -253,7 +245,7 @@ action:
 #OFF button 
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "off" }}'
+      value_template: '{{ v__command == "off"  and is_state(v__entity_button_off, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_off }}'  
@@ -266,7 +258,7 @@ action:
 #UP/DOWN buttons
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up" }}'
+      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up"  and is_state(v__entity_button_step_up, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_up }}'  
@@ -278,7 +270,7 @@ action:
        
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down" }}'
+      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down"  and is_state(v__entity_button_step_down, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_down }}'  
@@ -293,7 +285,7 @@ action:
   # color temperature 
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down"}}' #it's not a mistake 
+      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down" and is_state(v__entity_button_step_color_temp_up, "null") == false }}' #it's not a mistake 
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_color_temp_up }}' #it's not a mistake  
@@ -305,7 +297,7 @@ action:
         
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up"}}' #it's not a mistake 
+      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and is_state(v__entity_button_step_color_temp_down, "null") == false }}' #it's not a mistake 
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_color_temp_down }}' #it's not a mistake  
@@ -320,7 +312,7 @@ action:
   # color saturation - top / bottom buttons
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up"}}'
+      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up" and is_state(v__entity_button_step_saturation_up, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_saturation_up }}'  
@@ -332,7 +324,7 @@ action:
         
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Down" }}'
+      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Down" and is_state(v__entity_button_step_saturation_down, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_saturation_down }}'  
@@ -345,7 +337,7 @@ action:
   # color hue - right /left buttons 
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Up" }}'
+      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Up" and is_state(v__entity_button_step_hue_up, "null") == false  }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_hue_up }}'  
@@ -357,7 +349,7 @@ action:
         
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Down" }}'
+      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Down" and is_state(v__entity_button_step_hue_down, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_step_hue_down }}'  
@@ -370,7 +362,7 @@ action:
 #SCENE1/SCENE2/SCENE3/SCENE4 buttons
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "view" and v__command_args1 == 10 }}'
+      value_template: '{{ v__command == "view" and v__command_args1 == 10 and is_state(v__entity_button_scene1, "null") == false  }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_scene1 }}'  
@@ -382,7 +374,7 @@ action:
  
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "view" and v__command_args1 == 11 }}'
+      value_template: '{{ v__command == "view" and v__command_args1 == 11 and is_state(v__entity_button_scene2, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_scene2 }}'  
@@ -394,7 +386,7 @@ action:
  
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "view" and v__command_args1 == 12 }}'
+      value_template: '{{ v__command == "view" and v__command_args1 == 12 and is_state(v__entity_button_scene3, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_scene3 }}'  
@@ -406,7 +398,7 @@ action:
  
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "view" and v__command_args1 == 13 }}'
+      value_template: '{{ v__command == "view" and v__command_args1 == 13 and is_state(v__entity_button_scene4, "null") == false }}'
     sequence:
     - variables:
         v__entity:        '{{ v__entity_button_scene4 }}'  
