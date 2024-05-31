@@ -10,11 +10,12 @@ via ZHA to control up to 4 devices or groups (lights, switches etc).</br>
 Works with:</br>
 - white lights with adjustable brightness and color temperature</br>
 - lights with on/off support only</br>
-- switches (like smart plugs) - on/off</br>
+- switches (like smart plugs eg. Xiaomi Mi Smart Wi-Fi Power Plug, Fibaro Wall Plug etc) - support on/off only</br>
+- fans - turning on/off, changing build-in modes (eg. Xiaomi Smart Air Purifier etc) </br>
 </p>
 <p>To do:</br>
 - color lights with adjustable hue and saturation (asked Leroy Merlin Polska for support)</br>
-- fans</br>
+- turning on/off/run automations</br>
 - ...</br>
 </p>
 </br>
