@@ -1,0 +1,419 @@
+variables:
+  entity_domain_options: &entity_domain_options  #Dictionary of available entities
+    - automation
+    - scene
+            
+blueprint:
+  name: SirYasko's LXEK-5/ZBEK-26 buttons v1.0
+  description: |
+    Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
+    (HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html)
+  source_url: https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26-lights.yaml
+  domain: automation
+  author: SirYasko
+        
+  input:
+    i__debug:
+      name: " "
+      description: "# Debug"
+      default: ""
+      selector:
+        qr_code:
+          data: ""
+          scale: 0
+          error_correction_level: low 
+          
+    i__debug_f:
+      name: (Required) Send debug notifications to HA
+      description: Disabled by default
+      default: false
+      selector:
+        boolean:
+       
+    i__config_desc:
+      name: " "
+      description: "# Entities configuration"
+      default: ""
+      selector:
+        qr_code:
+          data: ""
+          scale: 0
+          error_correction_level: low 
+          
+    i__remote:
+      name: (Required) Adeo LXEK-5/ZBEK-26 remote controler
+      description: Select the remote controler you wish to use.
+      selector:
+        device:
+          filter:
+            - integration: zha
+              model: LXEK-5
+            - integration: zha
+              model: ZBEK-26
+
+
+    i__entity_button_on:  
+      name: (Optional) Entity for [on] button
+      description: "I button"
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false 
+      default: null          
+
+    i__entity_button_off: 
+      name: (Optional) Entity for [off] button
+      description: "O button"
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false    
+      default: null
+      
+    i__entity_button_scene1: 
+      name: (Optional) Entity for [scene 1] button
+      description: ".  button"
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false  
+      default: null
+      
+    i__entity_button_scene2: 
+      name: (Optional) Entity for [scene 2] button
+      description: ":  button"
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false  
+      default: null
+      
+    i__entity_button_scene3: 
+      name: (Optional) Entity for [scene 3] button
+      description: ".: button"
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false  
+      default: null
+
+    i__entity_button_scene4: 
+      name: (Optional) Entity for [scene 4] button
+      description: ":: button"
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false  
+      default: null
+      
+    i__entity_button_step_up: 
+      name: (Optional) Entity for [step up] button
+      description: "UP button on the right"
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false 
+      default: null
+      
+    i__entity_button_step_down: 
+      name: (Optional) Entity for [step down] button
+      description: "DOWN button on the right" 
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false
+      default: null
+      
+    i__entity_button_step_color_temp_up: 
+      name: (Optional) Entity for [color temp up] button
+      description: Red LED  & D-pad UP
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false 
+      default: null
+      
+    i__entity_button_step_color_temp_down: 
+      name: (Optional) Entity for [color temp down] button
+      description: Red LED & D-pad DOWN
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false
+      default: null
+      
+    i__entity_button_step_saturation_up: 
+      name: (Optional) Entity for [saturation up] button
+      description: Green LED & D-pad UP
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false 
+      default: null
+      
+    i__entity_button_step_saturation_down: 
+      name: (Optional) Entity for [saturation down] button
+      description: Green LED & & D-pad DOWN
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false
+      default: null
+      
+    i__entity_button_step_hue_up: 
+      name: (Optional) Entity for [hue up] button
+      description: Green LED & D-pad RIGHT
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false 
+      default: null
+      
+    i__entity_button_step_hue_down: 
+      name: (Optional) Entity for [hue down] button
+      description: Green LED & D-pad LEFT
+      selector:
+        entity:
+          domain: *entity_domain_options
+          multiple: false
+      default: null
+
+
+mode: restart
+max_exceeded: silent
+  
+trigger:
+- platform: event
+  event_type: zha_event
+  event_data:
+    device_id: !input i__remote
+    
+action:
+- variables:
+    v__command:        '{{ trigger.event.data.command }}'
+    v__command_args0:  '{{ trigger.event.data.args[0] }}'
+    v__command_args1:  '{{ trigger.event.data.args[1] }}'
+
+    v__debug_f:                            !input i__debug_f
+    v__entity_button_on:                   !input i__entity_button_on
+    v__entity_button_off:                  !input i__entity_button_off
+    v__entity_button_scene1:               !input i__entity_button_scene1
+    v__entity_button_scene2:               !input i__entity_button_scene2
+    v__entity_button_scene3:               !input i__entity_button_scene3
+    v__entity_button_scene4:               !input i__entity_button_scene4
+    v__entity_button_step_up:              !input i__entity_button_step_up
+    v__entity_button_step_down:            !input i__entity_button_step_down
+    v__entity_button_step_color_temp_up:   !input i__entity_button_step_color_temp_up
+    v__entity_button_step_color_temp_down: !input i__entity_button_step_color_temp_down
+    v__entity_button_step_saturation_up:   !input i__entity_button_step_saturation_up
+    v__entity_button_step_saturation_down: !input i__entity_button_step_saturation_down
+    v__entity_button_step_hue_up:          !input i__entity_button_step_hue_up
+    v__entity_button_step_hue_down:        !input i__entity_button_step_hue_down  
+    
+# DEBUG  
+- choose:
+  - conditions:
+    - condition: template
+      value_template: '{{ v__debug_f == true }}' 
+    sequence:
+      - service: persistent_notification.create
+        data:
+          title: 'Parameters'
+          message: |
+             v__command:               {{v__command}}; 
+             v__command_args0:         {{v__command_args0}}; 
+             v__command_args1:         {{v__command_args1}};
+             _________________________________________________________________
+             
+  default: []
+  
+- choose:
+  - conditions:
+    - condition: template
+      value_template: '{{ v__entities | length > 4 }}' 
+    sequence:
+      - service: persistent_notification.create
+        data:
+          title: 'Too many entities added'
+          message: 'Please select up to 4 entities only.'
+
+#ON button
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "on" and is_state(v__entity_button_on, "null") == false }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_on }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}' 
+        v__service:       '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+  
+#OFF button 
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "off" }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_off }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:       '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+        
+#UP/DOWN buttons
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up" }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_up }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:       '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+       
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down" }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_down }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:       '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+          
+#TOP/BOTTOM/LEFT/RIGHT buttons
+ #RED LED - top / bottom buttons
+  # color temperature 
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down"}}' #it's not a mistake 
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_color_temp_up }}' #it's not a mistake  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:       '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+        
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up"}}' #it's not a mistake 
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_color_temp_down }}' #it's not a mistake  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:       '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+ 
+ 
+ #GREEN LED  - top / bottom /left / right buttons             
+  # color saturation - top / bottom buttons
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up"}}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_saturation_up }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:       '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+        
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Down" }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_saturation_down }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:        '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+
+  # color hue - right /left buttons 
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Up" }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_hue_up }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:        '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+        
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Down" }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_step_hue_down }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:        '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+        
+#SCENE1/SCENE2/SCENE3/SCENE4 buttons
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "view" and v__command_args1 == 10 }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_scene1 }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:        '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+ 
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "view" and v__command_args1 == 11 }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_scene2 }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:        '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+ 
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "view" and v__command_args1 == 12 }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_scene3 }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:        '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+ 
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "view" and v__command_args1 == 13 }}'
+    sequence:
+    - variables:
+        v__entity:        '{{ v__entity_button_scene4 }}'  
+        v__entity_domain: '{{ v__entity.split(".")[0] }}'  
+        v__service:        '{% if v__entity_domain == "automation" %} {{v__entity_domain}}.trigger {% else %} {{v__entity_domain}}.turn_on {% endif %}'    
+    - service: '{{ v__service }}'
+      target:
+       entity_id: '{{ v__entity }}'
+
+  default: []
