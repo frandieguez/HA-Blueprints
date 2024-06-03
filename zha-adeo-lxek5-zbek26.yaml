@@ -1,5 +1,5 @@
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 v1.3
+  name: SirYasko's LXEK-5/ZBEK-26 v1.4
   description: >
     Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
     (HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html)
@@ -8,9 +8,19 @@ blueprint:
   author: SirYasko
         
   input:
+    i__config_desc:
+      name: " "
+      description: "# Entities configuration"
+      default: ""
+      selector:
+        qr_code:
+          data: ""
+          scale: 0
+          error_correction_level: low 
+          
     i__remote:
-      name: (Required) Adeo LXEK-5/ZBEK-26 remote controler
-      description: Select the remote controler you wish to use.
+      name: (Required) Adeo LXEK-5/ZBEK-26 remote controller
+      description: Select the remote controller you wish to use.
       selector:
         device:
           filter:
@@ -264,6 +274,16 @@ blueprint:
           scale: 0
           error_correction_level: low 
 
+    i__hue_step:
+      name: (Optional) Hue Step
+      description: "Hue change step."
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 360
+          unit_of_measurement: "degrees"
+    
     i__hue_transition_time:
       name: (Optional) Hue transition time
       description: Duration it takes to get to next state.
@@ -274,7 +294,17 @@ blueprint:
           max: 60
           step: 0.1          
           unit_of_measurement: "seconds"
- 
+
+    i__saturation_step:
+      name: (Optional) Saturation Step
+      description: "Saturation change step."
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 100
+          unit_of_measurement: "percent"    
+    
     i__saturation_transition_time:
       name: (Optional) Saturation transition time
       description: Duration it takes to get to next state.
@@ -326,7 +356,7 @@ blueprint:
           min: 0
           max: 100
           step: 1
-          unit_of_measurement: "Percent"   
+          unit_of_measurement: "percent"   
 
     i__fan_speed_descrease_step:
       name: (Optional) Decreasing fan speed by a percentage step
@@ -337,7 +367,7 @@ blueprint:
           min: 0
           max: 100
           step: 1
-          unit_of_measurement: "Percent"   
+          unit_of_measurement: "percent"   
 
 mode: restart
 max_exceeded: silent
@@ -364,7 +394,9 @@ variables:
   v__color_step:                 !input i__color_step
   v__color_transition_time:      !input i__color_transition_time
   # HS
+  v__hue_step:                   !input i__hue_step
   v__hue_transition_time:        !input i__hue_transition_time
+  v__saturation_step:            !input i__saturation_step
   v__saturation_transition_time: !input i__saturation_transition_time
   # FAN
   v__fan_speed_min:              !input i__fan_speed_min
@@ -646,22 +678,32 @@ action:
     - condition: template
       value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR") }}'
     sequence:
+    - variables:
+        v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
+        v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'
+        v__new_saturation:      '{% if (v__current_saturation + v__saturation_step) >= 100 %} {{ 100 }} {% else %} {{ v__current_saturation + v__saturation_step }} {% endif %}'
     - service: light.turn_on
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color:
+        #hs_color: ['{{ v__current_hue }}', '{{ v__new_saturation }}']
+        hs_color: '{{ [v__current_hue, v__new_saturation] }}'
         transition: '{{ v__saturation_transition_time }}'
         
   - conditions:
     - condition: template
       value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR") }}'
     sequence:
+    - variables:
+        v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
+        v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'
+        v__new_saturation:      '{% if (v__current_saturation - v__saturation_step) < 0 %} {{ 0 }} {% else %} {{ v__current_saturation - v__saturation_step }} {% endif %}'
     - service: light.turn_on
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color:
+        #hs_color: ['{{ v__current_hue }}', '{{ v__new_saturation }}']
+        hs_color: '{{ [v__current_hue, v__new_saturation] }}'
         transition: '{{ v__saturation_transition_time }}'
 
   # color hue right /left buttons (green led)
@@ -669,22 +711,32 @@ action:
     - condition: template
       value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR") }}'
     sequence:
+    - variables:
+        v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
+        v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'   
+        v__new_hue:             '{{ (v__current_hue + v__hue_step) % 360 }}'
     - service: light.turn_on
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color:
+        #hs_color: ['{{ v__new_hue }}', '{{ v__current_saturation }}']
+        hs_color: '{{ [v__new_hue, v__current_saturation] }}'
         transition: '{{ v__hue_transition_time }}'
         
   - conditions:
     - condition: template
       value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR") }}'
     sequence:
+    - variables:
+        v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
+        v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'
+        v__new_hue:             '{% if (v__current_hue - v__hue_step) < 0 %} {{ 360 + (v__current_hue - v__hue_step) }} {% else %} {{ (v__current_hue - v__hue_step) }} {% endif %}'
     - service: light.turn_on
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color:
+        #hs_color: ['{{ v__new_hue }}', '{{ v__current_saturation }}']
+        hs_color: '{{ [v__new_hue, v__current_saturation] }}' 
         transition: '{{ v__hue_transition_time }}'
         
 #SCENE1/SCENE2/SCENE3/SCENE4 buttons
