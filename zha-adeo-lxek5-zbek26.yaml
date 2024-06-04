@@ -1,13 +1,53 @@
+variables:
+  entity_type_options: &entity_type_options #Dictionary of entity types that can be enforced
+    - label: 0. Automatic (by entity domain and entity info)
+      value: AUTO          
+    - label: 1. Skip entity
+      value: SKIP
+    - label: 2. White light with adjustable temperature and brightness
+      value: LIGHT_COLOR_TEMP
+    - label: 3. Color light with adjustable hue and saturation
+      value: LIGHT_HS
+    - label: 4. Light with On/Off support only
+      value: LIGHT_ONOFF
+    - label: 5. Switch with On/Off support only
+      value: SWITCH
+    - label: 6. Fan with On/Off and defined modes support
+      value: FAN
+    - label: 7. Automation On/Off
+      value: AUTOMATION
+    - label: 8. Scene On
+      value: SCENE
+    
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 v1.4
-  description: >
+  name: SirYasko's LXEK-5/ZBEK-26 v1.5
+  description: |
     Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
-    (HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html)
-  source_url: https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26-lights.yaml
+    HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html
+    ![Device Image](https://github.com/SirYasko/HA-Blueprints/raw/main/zha-adeo-lxek5-zbek26.png)
+  source_url: https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26.yaml
   domain: automation
   author: SirYasko
+
         
   input:
+    i__debug:
+      name: " "
+      description: "# Debug"
+      default: ""
+      selector:
+        qr_code:
+          data: ""
+          scale: 0
+          error_correction_level: low 
+          
+    i__debug_f:
+      name: (Required) Send debug notifications to HA
+      description: Disabled by default
+      default: false
+      selector:
+        boolean:
+       
     i__config_desc:
       name: " "
       description: "# Entities configuration"
@@ -30,7 +70,7 @@ blueprint:
               model: ZBEK-26
 
     i__entities:
-      name: (Required) Available entities - lights / switches / fans
+      name: (Required) Supported entities 
       description: Select the entity you wish to control (max 4 entities or groups). The order of entities correspond to the scene buttons.
       selector:
         entity:
@@ -38,100 +78,57 @@ blueprint:
             - light
             - switch
             - fan
+            - automation
+            - scene
           multiple: true
       
     i__entity_helper:
       name: (Required) Helper
-      description: "Select the helper to store selected entity: Settings -> Devices & Services -> Helpers -> Add helper -> Text (name: any, icon: any, min length: 0, max length: 1000, mode: text, pattern regex: empty)."
+      description: |
+        Select the helper to store selected entity: 
+        Settings -> Devices & Services -> Helpers -> Add helper -> Text 
+        (name: any, icon: any, min length: 0, max length: 1000, mode: text, pattern regex: empty).
       selector:
         entity:
           domain:
             - input_text
           multiple: false
-    
+  
     i__entity_type_1:
-      name: "(Required) Type of entity #1"
-      description: "Choose the type of selected entity #1"
+      name: "(Optional) Force type of entity #1"
+      description: "Force the type of selected entity #1"
       selector:
         select:
           mode: dropdown 
-          options: 
-            - label: Skip entity
-              value: SKIP
-            - label: White light with adjustable temperature and brightness
-              value: LIGHT_WHITE
-            - label: Color light with adjustable hue and saturation
-              value: LIGHT_COLOR
-            - label: Light On/Off
-              value: LIGHT_ONOFF
-            - label: Switch On/Off
-              value: SWITCH_ONOFF
-            - label: Fan
-              value: FAN
-      default: SKIP
+          options: *entity_type_options
+      default: AUTO
  
     i__entity_type_2:
-      name: "(Required) Type of entity #2"
-      description: "Choose the type of selected entity #2"
+      name: "(Optional) Force type of entity #2"
+      description: "Force type of selected entity #2"
       selector:
         select:
           mode: dropdown 
-          options: 
-            - label: Skip entity
-              value: SKIP
-            - label: White light with adjustable temperature and brightness
-              value: LIGHT_WHITE
-            - label: Color light with adjustable hue and saturation
-              value: LIGHT_COLOR
-            - label: Light On/Off
-              value: LIGHT_ONOFF
-            - label: Switch On/Off
-              value: SWITCH_ONOFF
-            - label: Fan
-              value: FAN
-      default: SKIP
+          options: *entity_type_options
+      default: AUTO
 
     i__entity_type_3:
-      name: "(Required) Type of entity #3"
-      description: "Choose the type of selected entity #3"
+      name: "(Optional) Force type of entity #3"
+      description: "Force type of selected entity #3"
       selector:
         select:
           mode: dropdown 
-          options: 
-            - label: Skip entity
-              value: SKIP
-            - label: White light with adjustable temperature and brightness
-              value: LIGHT_WHITE
-            - label: Color light with adjustable hue and saturation
-              value: LIGHT_COLOR
-            - label: Light On/Off
-              value: LIGHT_ONOFF
-            - label: Switch On/Off
-              value: SWITCH_ONOFF
-            - label: Fan
-              value: FAN
-      default: SKIP
+          options: *entity_type_options
+      default: AUTO
 
     i__entity_type_4:
-      name: "(Required) Type of entity #4"
-      description: "Choose the type of selected entity #4"
+      name: "(Optional) Force type of entity #4"
+      description: "Force type of selected entity #4"
       selector:
         select:
           mode: dropdown 
-          options:
-            - label: Skip entity
-              value: SKIP
-            - label: White light with adjustable temperature and brightness
-              value: LIGHT_WHITE
-            - label: Color light with adjustable hue and saturation
-              value: LIGHT_COLOR
-            - label: Light On/Off
-              value: LIGHT_ONOFF
-            - label: Switch On/Off
-              value: SWITCH_ONOFF
-            - label: Fan
-              value: FAN
-      default: SKIP
+          options: *entity_type_options
+      default: AUTO
     
     i__brightness_desc:
       name: " "
@@ -373,6 +370,7 @@ mode: restart
 max_exceeded: silent
     
 variables:
+  v__debug_f:                    !input i__debug_f
   v__entities:                   !input i__entities
   v__entity_helper:              !input i__entity_helper 
   v__entity_type_1:              !input i__entity_type_1  
@@ -412,28 +410,69 @@ trigger:
     
 action:
 - variables:
-    v__command:       '{{ trigger.event.data.command }}'
-    v__command_args0: '{{ trigger.event.data.args[0] }}'
-    v__command_args1: '{{ trigger.event.data.args[1] }}'
-    
-    v__entity:      '{{ (states(v__entity_helper) | from_json).entity }}' 
-    v__entity_type: '{{ (states(v__entity_helper) | from_json).type }}'
+    v__command:         '{{ trigger.event.data.command }}'
+    v__command_args0:   '{{ trigger.event.data.args[0] }}'
+    v__command_args1:   '{{ trigger.event.data.args[1] }}'
+    v__entity_JSON:     '{{ (states(v__entity_helper) | from_json) }}'
+    v__entity:          '{{ v__entity_JSON.entity }}' 
+    v__entity_type_def: '{{ v__entity_JSON.type }}'
+    v__entity_domain:   '{{ v__entity.split(".")[0] }}'    
+    v__entity_info:     '{{ expand(v__entity) }}'
+    v__light_supported_color_mode: >
+      {% set entity_id = v__entity %}
+      {% if v__entity_domain == "light" %}
+        {% set modes = state_attr(entity_id, 'supported_color_modes') %}
+        {% if modes %}
+          {% set modes_list = modes | map(attribute='value') | list %}
+          {{ modes_list | join(', ') }}
+        {% else %}
+          None
+        {% endif %}
+      {% else %}
+        None
+      {% endif %}
+    v__entity_type_auto: >
+      {% if v__entity_type_def == "SKIP" %}
+        {{ v__entity_type_def | upper }}
+      {% elif v__entity_type_def == "AUTO" %}  
+        {% if v__entity_domain == "light" and v__light_supported_color_mode in ("onoff", "brightness", "color_temp", "hs") %}
+          {{ (v__entity_domain + '_' + v__light_supported_color_mode) | upper }}
+        {% else %}
+          {{ v__entity_domain | upper }}
+        {% endif %}
+      {% else %}
+        {{ v__entity_domain | upper }}
+      {% endif %}
+    v__entity_type: '{{ v__entity_type_auto }}'
 
+# DEBUG  
 - choose:
   - conditions:
     - condition: template
-      value_template: '{{ 0 == 1 }}' 
+      value_template: '{{ v__debug_f == true }}' 
     sequence:
       - service: persistent_notification.create
         data:
           title: 'Parameters'
-          message: >
-           v__entity: {{v__entity}}; 
-           v__entity_type: {{v__entity_type}}; 
-           v__command: {{v__command}}; 
-           v__command_args0: {{v__command_args0}}; 
-           v__command_args1: {{v__command_args1}};  
-          
+          message: |
+             v__command:               {{v__command}}; 
+             v__command_args0:         {{v__command_args0}}; 
+             v__command_args1:         {{v__command_args1}};
+             _________________________________________________________________
+             v__entities:              {{v__entities}};
+             v__entity_JSON:           {{v__entity_JSON}};   
+             v__entity:                {{v__entity}}; 
+             v__entity_domain:         {{v__entity_domain}};
+             v__entity_type_def:       {{v__entity_type_def}}; 
+             v__entity_info:           {{v__entity_info}};
+             v__entity_type_auto:      {{v__entity_type_auto}};
+             v__entity_type:           {{v__entity_type}}
+             _________________________________________________________________
+             v__light_supported_color_mode: {{v__light_supported_color_mode}};
+             
+  default: []
+  
+- choose:
   - conditions:
     - condition: template
       value_template: '{{ v__entities | length > 4 }}' 
@@ -446,7 +485,7 @@ action:
 #ON button
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "on" and v__entity_type.startswith("LIGHT_") }}'
+      value_template: '{{ v__command == "on" and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
     sequence:
     - variables:
         v__current_brightness: '{{ (state_attr(v__entity, "brightness") or 0 ) | int }}'
@@ -465,55 +504,31 @@ action:
           "transition": "{{ v__transition }}",
           {% endif %}
           }
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
        entity_id: '{{ v__entity }}'
       data: '{{ v__data }}'
 
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "on" and v__entity_type.startswith("SWITCH") }}'
+      value_template: '{{ v__command == "on" and v__entity_type not in ("LIGHT_COLOR_TEMP") }}'
     sequence:
-    - service: switch.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
        entity_id: '{{ v__entity }}'
-       
-  - conditions:
-    - condition: template
-      value_template: '{{ v__command == "on" and v__entity_type.startswith("FAN") }}'
-    sequence:
-    - service: fan.turn_on
-      target:
-        entity_id: '{{ v__entity }}'
   
 #OFF button 
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "off" and v__entity_type == "LIGHT_ONOFF" }}'
+      value_template: '{{ v__command == "off" and v__entity_type in ("LIGHT_ONOFF", "SWITCH", "FAN", "AUTOMATION") }}'
     sequence:
-    - service: light.turn_off
+    - service: '{{ v__entity_domain }}.turn_off'
       target:
         entity_id: '{{ v__entity }}'
- 
+         
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "off" and v__entity_type.startswith("SWITCH") }}'
-    sequence:
-    - service: switch.turn_off
-      target:
-        entity_id: '{{ v__entity }}'
- 
-  - conditions:
-    - condition: template
-      value_template: '{{ v__command == "off" and v__entity_type.startswith("FAN") }}'
-    sequence:
-    - service: fan.turn_off
-      target:
-        entity_id: '{{ v__entity }}'
-        
-  - conditions:
-    - condition: template
-      value_template: '{{ v__command == "off" and v__entity_type in ("LIGHT_WHITE", "LIGHT_COLOR") and (state_attr(v__entity, "brightness") or 0 ) | int > 0 }}'
+      value_template: '{{ v__command == "off" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") and (state_attr(v__entity, "brightness") or 0 ) | int > 0 }}'
     sequence:
     - service: light.turn_off
       target:
@@ -521,9 +536,9 @@ action:
 
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "off" and v__entity_type in ("LIGHT_WHITE", "LIGHT_COLOR") and (state_attr(v__entity, "brightness") or 0 ) | int == 0 }}'
+      value_template: '{{ v__command == "off" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") and (state_attr(v__entity, "brightness") or 0 ) | int == 0 and v__brightness_double_off == true }}'
     sequence:
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
@@ -533,11 +548,11 @@ action:
   # light brightness       
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_WHITE", "LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_brightness: '{{ (state_attr(v__entity, "brightness")) | int }}'       
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
@@ -551,11 +566,11 @@ action:
             
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_WHITE", "LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_brightness: '{{ (state_attr(v__entity, "brightness")) | int }}'    
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
@@ -574,7 +589,7 @@ action:
     sequence:
     - variables:
         v__current_fan_speed: '{{ (state_attr(v__entity, "percentage")) | int }}'
-    - service: fan.set_percentage
+    - service: '{{ v__entity_domain }}.set_percentage'
       target:
         entity_id: '{{ v__entity }}' 
       data:
@@ -591,7 +606,7 @@ action:
     sequence:
     - variables:
         v__current_fan_speed: '{{ (state_attr(v__entity, "percentage")) | int }}'
-    - service: fan.set_percentage
+    - service: '{{ v__entity_domain }}.set_percentage'
       target:
         entity_id: '{{ v__entity }}' 
       data:
@@ -602,15 +617,25 @@ action:
           {{ v__current_fan_speed - v__fan_speed_descrease_step }}
           {% endif %}
 
-#TOP/BOTTOM/LEFT/RIGHT buttons
-  # color temperature up / down buttons
+  # automation
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_WHITE", "LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step" and v__command_args0 in ( "StepMode.Up", "StepMode.Down" )and v__entity_type in ("AUTOMATION") }}' 
+    sequence:
+    - service: '{{ v__entity_domain }}.trigger'
+      target:
+        entity_id: '{{ v__entity }}' 
+          
+#TOP/BOTTOM/LEFT/RIGHT buttons
+ #RED LED - top / bottom buttons
+  # color temperature 
+  - conditions:
+    - condition: template
+      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_color_temp: '{{ (state_attr(v__entity, "color_temp")) | int }}'
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
@@ -624,11 +649,11 @@ action:
         
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_WHITE", "LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_color_temp: '{{ (state_attr(v__entity, "color_temp")) | int }}'    
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
@@ -640,14 +665,14 @@ action:
           {% endif %}
         transition: '{{ v__color_transition_time }}'
  
-  # fan mode up / down buttons
+  # fan mode
   - conditions:
     - condition: template
       value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and v__entity_type in ("FAN") }}'
     sequence:
     - variables:
         v__current_fan_mode: '{{ state_attr(v__entity, "preset_mode") }}'
-    - service: fan.set_preset_mode
+    - service: '{{ v__entity_domain }}.set_preset_mode'
       target:
         entity_id: '{{ v__entity }}'
       data:
@@ -663,7 +688,7 @@ action:
     sequence:
     - variables:
         v__current_fan_mode: '{{ state_attr(v__entity, "preset_mode") }}'
-    - service: fan.set_preset_mode
+    - service: '{{ v__entity_domain }}.set_preset_mode'
       target:
         entity_id: '{{ v__entity }}'
       data:
@@ -672,71 +697,68 @@ action:
           {% set current_index = modes.index(v__current_fan_mode) %}
           {% set prev_index = (current_index - 1) % modes | length %}
           {{ modes[prev_index] }}
-                
-  # color saturation up / down buttons (green led)
+ 
+ #GREEN LED  - top / bottom /left / right buttons             
+  # color saturation - top / bottom buttons
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
         v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'
         v__new_saturation:      '{% if (v__current_saturation + v__saturation_step) >= 100 %} {{ 100 }} {% else %} {{ v__current_saturation + v__saturation_step }} {% endif %}'
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color: ['{{ v__current_hue }}', '{{ v__new_saturation }}']
-        hs_color: '{{ [v__current_hue, v__new_saturation] }}'
+        hs_color: ['{{ v__current_hue }}', '{{ v__new_saturation }}']
         transition: '{{ v__saturation_transition_time }}'
         
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
         v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'
         v__new_saturation:      '{% if (v__current_saturation - v__saturation_step) < 0 %} {{ 0 }} {% else %} {{ v__current_saturation - v__saturation_step }} {% endif %}'
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color: ['{{ v__current_hue }}', '{{ v__new_saturation }}']
-        hs_color: '{{ [v__current_hue, v__new_saturation] }}'
+        hs_color: ['{{ v__current_hue }}', '{{ v__new_saturation }}']
         transition: '{{ v__saturation_transition_time }}'
 
-  # color hue right /left buttons (green led)
+  # color hue - right /left buttons 
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
         v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'   
         v__new_hue:             '{{ (v__current_hue + v__hue_step) % 360 }}'
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color: ['{{ v__new_hue }}', '{{ v__current_saturation }}']
-        hs_color: '{{ [v__new_hue, v__current_saturation] }}'
+        hs_color: ['{{ v__new_hue }}', '{{ v__current_saturation }}']
         transition: '{{ v__hue_transition_time }}'
         
   - conditions:
     - condition: template
-      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR") }}'
+      value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_HS") }}'
     sequence:
     - variables:
         v__current_hue:         '{{ state_attr(v__entity, "hs_color")[0] | int }}'
         v__current_saturation:  '{{ state_attr(v__entity, "hs_color")[1] | int }}'
         v__new_hue:             '{% if (v__current_hue - v__hue_step) < 0 %} {{ 360 + (v__current_hue - v__hue_step) }} {% else %} {{ (v__current_hue - v__hue_step) }} {% endif %}'
-    - service: light.turn_on
+    - service: '{{ v__entity_domain }}.turn_on'
       target:
         entity_id: '{{ v__entity }}'
       data:
-        #hs_color: ['{{ v__new_hue }}', '{{ v__current_saturation }}']
-        hs_color: '{{ [v__new_hue, v__current_saturation] }}' 
+        hs_color: ['{{ v__new_hue }}', '{{ v__current_saturation }}']
         transition: '{{ v__hue_transition_time }}'
         
 #SCENE1/SCENE2/SCENE3/SCENE4 buttons
@@ -775,15 +797,5 @@ action:
         data:
           entity_id: '{{ v__entity_helper }}'
           value: '{{ {"entity": v__entities[3], "type": v__entity_type_4} | tojson }}'
-          
-  # - conditions:
-    # - condition: template
-      # value_template: '{{ v__command == "view" and v__command_args1 == 14 }}'
-    # sequence:
-      # - service: persistent_notification.create
-        # data:
-          # title: Current entity
-          # message: Current entity '{{ v__entity }}'
-            
-  default: []
 
+  default: []
