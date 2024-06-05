@@ -21,10 +21,13 @@ Works with:</br>
 - lights with on/off support only</br>
 - switches (like smart plugs e.g. Xiaomi Mi Smart Wi-Fi Power Plug, Fibaro Wall Plug, etc.) - support on/off only</br>
 - fans - turning on/off, changing build-in modes (e.g. Xiaomi Smart Air Purifier, etc.) </br>
+- automations - turning on/off/trigger</br>
+- scenes - run</br>
 </p>
 <p>To do:</br>
 - color lights with adjustable hue and saturation (asked Leroy Merlin Polska for support)</br>
-- turning on/off/run automations</br>
+- media: play/stop/pause/volume up-down etc.</br>
+- long press (press and hold button)</br>
 - ...</br>
 </p>
 </br>
@@ -41,7 +44,7 @@ Works with:</br>
 - automations</br>
 </p>
 <p>To do:</br>
-- long press</br>
+- long press (press and hold button) </br>
 - ...</br>
 </p>
 </br>
