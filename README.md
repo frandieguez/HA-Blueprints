@@ -28,6 +28,9 @@ Works with:</br>
 - color lights with adjustable hue and saturation (asked Leroy Merlin Polska for support)</br>
 - media: play/stop/pause/volume up-down etc.</br>
 - long press (press and hold button)</br>
+- locks lock/unlock</br>
+- sirens on/off/volume etc.</br>
+- climate control</br>
 - ...</br>
 </p>
 </br>
