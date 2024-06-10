@@ -23,10 +23,10 @@ Works with:</br>
 - fans - turning on/off, changing build-in modes (e.g. Xiaomi Smart Air Purifier, etc.) </br>
 - automations - turning on/off/trigger</br>
 - scenes - run</br>
+- media-players: on/off/volume up-down/mute/play/pause/stop/next-previous track/next-previous source</br>
 </p>
 <p>To do:</br>
 - color lights with adjustable hue and saturation (asked Leroy Merlin Polska for support)</br>
-- media: play/stop/pause/volume up-down etc.</br>
 - long press (press and hold button)</br>
 - locks lock/unlock</br>
 - sirens on/off/volume etc.</br>
