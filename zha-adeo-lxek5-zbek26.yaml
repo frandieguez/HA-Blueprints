@@ -5,6 +5,7 @@ variables:
     - fan
     - automation
     - scene
+    - media_player
   entity_type_options: &entity_type_options #Dictionary of entity types that can be enforced
     - label: 0. Automatic (by entity domain and entity info)
       value: AUTO          
@@ -22,9 +23,11 @@ variables:
       value: AUTOMATION
     - label: 7. Scene On
       value: SCENE
-    
+    - label: 8. Media player On/Off/VolUp/VolDown/Start/Stop/Pause
+      value: MEDIA_PLAYER
+      
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 v1.6
+  name: SirYasko's LXEK-5/ZBEK-26 v1.7
   description: |
     Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
     HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html
@@ -165,7 +168,7 @@ blueprint:
     
     i__brightness_desc:
       name: ' '
-      description: '# Brightness'
+      description: '# Lights - brightness'
       default: ''
       selector:
         qr_code:
@@ -248,7 +251,7 @@ blueprint:
         
     i__color_desc:
       name: " "
-      description: "# Color temperature"
+      description: "# Lights - color temperature"
       default: ""
       selector:
         qr_code:
@@ -296,7 +299,7 @@ blueprint:
 
     i__hs_desc:
       name: " "
-      description: "# Hue & Saturation"
+      description: "# Lights - hue & saturation"
       default: ""
       selector:
         qr_code:
@@ -349,7 +352,7 @@ blueprint:
     # FAN
     i__fan_desc:
       name: " "
-      description: "# Fan"
+      description: "# Fans"
       default: ""
       selector:
         qr_code:
@@ -379,7 +382,7 @@ blueprint:
           
     i__fan_speed_increase_step:
       name: (Optional) Increasing fan speed by a percentage step
-      description: Increase speed by a percentage.
+      description: Increase speed by a percentage step.
       default: 20
       selector:
         number:
@@ -390,7 +393,7 @@ blueprint:
 
     i__fan_speed_descrease_step:
       name: (Optional) Decreasing fan speed by a percentage step
-      description: Increase speed by a percentage.
+      description: Decrease speed by a percentage step.
       default: 20
       selector:
         number:
@@ -452,8 +455,13 @@ action:
     v__entity_JSON:     '{{ (states(v__entity_helper) | from_json) }}'
     v__entity:          '{{ v__entity_JSON.entity }}' 
     v__entity_type_def: '{{ v__entity_JSON.type }}'
-    v__entity_domain:   '{{ v__entity.split(".")[0] }}'    
-    v__entity_info:     '{{ expand(v__entity) }}'
+    v__entity_domain:   >
+      {% if v__entity is not none and v__entity != '' %}
+        {{ v__entity.split(".")[0] }}
+      {% else %}
+        'unknown'
+      {% endif %}   
+    v__entity_info:     '{{ expand(v__entity) }}' #v__entity_state:    '{{ states[v__entity] }}'
     v__light_supported_color_mode: >
       {% set entity_id = v__entity %}
       {% if v__entity_domain == "light" %}
@@ -479,7 +487,7 @@ action:
         {{ v__entity_domain | upper }}
       {% endif %}
     v__entity_type: '{{ v__entity_type_auto }}'
-
+        
 # DEBUG  
 - choose:
   - conditions:
@@ -509,7 +517,7 @@ action:
              v__entity_type_def:    {{v__entity_type_def}}; 
              v__entity_info:        {{v__entity_info}};
              v__entity_type_auto:   {{v__entity_type_auto}};
-             v__entity_type:        {{v__entity_type}}
+             v__entity_type:        {{v__entity_type}};
              ______________________________________________________________
              v__light_supported_color_mode: {{v__light_supported_color_mode}};
   
@@ -645,7 +653,7 @@ action:
                 {{ v__current_brightness + v__brightness_step }}
                 {% endif %}
               transition: '{{ v__brightness_transition_time }}'
-                 
+          
         - conditions: #DOWN - decrease light brightness 
           - condition: template
             value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
@@ -663,7 +671,7 @@ action:
                 {{ v__current_brightness | int - v__brightness_step }}
                 {% endif %}
               transition: '{{ v__brightness_transition_time }}'
-              
+          
         - conditions: #DP-UP RED - higher color temperature 
           - condition: template
             value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
@@ -925,5 +933,161 @@ action:
           - service: '{{ v__entity_domain }}.turn_on'
             target:
              entity_id: '{{ v__entity }}'
-             
+
+#####################################################
+# MEDIA_PLAYER                                      #
+#####################################################
+  - conditions:
+    - condition: template
+      value_template: '{{ v__entity_type == "MEDIA_PLAYER" }}'
+    sequence:
+      - choose:
+      
+        - conditions: #ON
+          - condition: template
+            value_template: '{{ v__command == "on" }}'
+          sequence:
+          - service: '{{ v__entity_domain }}.turn_on'
+            target:
+             entity_id: '{{ v__entity }}'
+
+        - conditions: #OFF
+          - condition: template
+            value_template: '{{ v__command == "off" }}'
+          sequence:
+          - service: '{{ v__entity_domain }}.turn_off'
+            target:
+             entity_id: '{{ v__entity }}'
+        
+        - conditions: #UP - volume up
+            - condition: template
+              value_template: '{{ v__command == "step" and v__command_args0 in ("StepMode.Up") }}' 
+          sequence:
+            - service: '{{ v__entity_domain }}.volume_up'
+              target:
+                entity_id: '{{ v__entity }}' 
+
+        - conditions: #DOWN - volume down
+            - condition: template
+              value_template: '{{ v__command == "step" and v__command_args0 in ("StepMode.Down") and v__command_args1 != 254 }}' 
+          sequence:
+            - service: '{{ v__entity_domain }}.volume_down'
+              target:
+                entity_id: '{{ v__entity }}' 
+        
+        - conditions: #LP-DOWN - long press - mute
+            - condition: template
+              value_template: '{{ v__command == "step" and v__command_args0 in ("StepMode.Down") and v__command_args1 == 254 }}' 
+          sequence:
+            - service: '{{ v__entity_domain }}.volume_mute'
+              target:
+                entity_id: '{{ v__entity }}' 
+                
+        - conditions: #DP-UP RED - Play media
+            - condition: template
+              value_template: '{{ v__command == "step_color_temp" and v__command_args0 in ("StepMode.Down") }}' 
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: '{{ states(v__entity) == "playing" }}'
+                  sequence:
+                    - service: '{{ v__entity_domain }}.media_pause'
+                      target:
+                        entity_id: '{{ v__entity }}'
+                - conditions:
+                    - condition: template
+                      value_template: '{{ states(v__entity) != "playing" }}'
+                  sequence:
+                    - service: '{{ v__entity_domain }}.media_play'
+                      target:
+                        entity_id: '{{ v__entity }}'
+                        
+        - conditions: #DP-DOWN RED - Stop media
+            - condition: template
+              value_template: '{{ v__command == "step_color_temp" and v__command_args0 in ("StepMode.Up") }}' 
+          sequence:
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: '{{ states(v__entity) == "playing" }}'
+                  sequence:
+                    - service: '{{ v__entity_domain }}.media_stop'
+                      target:
+                        entity_id: '{{ v__entity }}'
+
+        - conditions: #DP-RIGHT GREEN - next track 
+          - condition: template
+            value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Up" }}'
+          sequence:
+          - service: '{{ v__entity_domain }}.media_next_track'
+            target:
+              entity_id: '{{ v__entity }}'
+ 
+        - conditions: #DP-LEFT GREEN - previous track 
+          - condition: template
+            value_template: '{{ v__command == "step_hue" and v__command_args0 == "StepMode.Down"  }}'
+          sequence:
+          - service: '{{ v__entity_domain }}.media_previous_track'
+            target:
+              entity_id: '{{ v__entity }}'
+
+        - conditions: #DP-UP GREEN - next source
+          - condition: template
+            value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up" }}'
+          sequence:
+          - variables:
+              v__available_sources:    >-
+                {% set source_list = state_attr(v__entity, "source_list") %}
+                {% if source_list is defined and source_list %}
+                    {{ source_list }}
+                {% else %}
+                    []
+                {% endif %}
+              v__current_source:       '{{ state_attr(v__entity, "source") }}'
+              v__current_source_index: >-
+                {% if v__current_source in v__available_sources %}
+                    {{ v__available_sources.index(v__current_source) }}
+                {% else %}
+                    -1
+                {% endif %}
+          - service: '{{ v__entity_domain }}.select_source'
+            target:
+              entity_id: '{{ v__entity }}'
+            data:
+              source: >-
+                  {% if v__available_sources %}
+                    {{ v__available_sources[(v__current_source_index + 1) % v__available_sources | length] }}
+                  {% endif %}
+ 
+        - conditions: #DP-DOWN GREEN - previous source
+          - condition: template
+            value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Down"  }}'
+          sequence:
+          - variables:
+              v__available_sources:    >-
+                {% set source_list = state_attr(v__entity, "source_list") %}
+                {% if source_list is defined and source_list %}
+                    {{ source_list }}
+                {% else %}
+                    []
+                {% endif %}
+              v__current_source:       '{{ state_attr(v__entity, "source") }}'
+              v__current_source_index: >-
+                {% if v__current_source in v__available_sources %}
+                    {{ v__available_sources.index(v__current_source) }}
+                {% else %}
+                    -1
+                {% endif %}
+          - service: '{{ v__entity_domain }}.select_source'
+            target:
+              entity_id: '{{ v__entity }}'
+            data:
+              source: >-
+                  {% if v__available_sources %}
+                    {{ v__available_sources[(v__current_source_index - 1) % v__available_sources | length] }}
+                  {% endif %}            
+
   default: []
+
+
