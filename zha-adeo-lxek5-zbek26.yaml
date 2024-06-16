@@ -27,7 +27,7 @@ variables:
       value: MEDIA_PLAYER
       
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 v1.7
+  name: SirYasko's LXEK-5/ZBEK-26 v1.8
   description: |
     Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
     HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html
@@ -259,23 +259,7 @@ blueprint:
           scale: 0
           error_correction_level: low 
     
-    i__color_force:
-      name: (Optional) Force color temperature value at turn on
-      description: Force color temperature value when the light is being turned on.
-      default: false
-      selector:
-        boolean:
-        
-    i__color_force_value:
-      name: (Optional) Force color temperature value at turn on
-      description: Color temperature when turning on the light in mireds.
-      default: 326
-      selector:
-        color_temp:
-          min: 153
-          max: 500
-          unit: "mired"
-          
+    #COLOR TEMPERATURE
     i__color_step:
       name: (Optional) Color temperature step
       description: Color temperature change step in mireds.
@@ -297,6 +281,24 @@ blueprint:
           step: 0.1          
           unit_of_measurement: "seconds"
 
+    i__color_force:
+      name: (Optional) Force color temperature value at turn on
+      description: Force color temperature value when the light is being turned on.
+      default: false
+      selector:
+        boolean:
+        
+    i__color_force_value:
+      name: (Optional) Force color temperature value at turn on
+      description: Color temperature when turning on the light in mireds.
+      default: 326
+      selector:
+        color_temp:
+          min: 153
+          max: 500
+          unit: "mired"
+    
+    #HUE / SATURATION
     i__hs_desc:
       name: " "
       description: "# Lights - hue & saturation"
@@ -382,7 +384,7 @@ blueprint:
           
     i__fan_speed_increase_step:
       name: (Optional) Increasing fan speed by a percentage step
-      description: Increase speed by a percentage step.
+      description: Increase speed by a percentage.
       default: 20
       selector:
         number:
@@ -393,7 +395,7 @@ blueprint:
 
     i__fan_speed_descrease_step:
       name: (Optional) Decreasing fan speed by a percentage step
-      description: Decrease speed by a percentage step.
+      description: Increase speed by a percentage.
       default: 20
       selector:
         number:
@@ -455,12 +457,7 @@ action:
     v__entity_JSON:     '{{ (states(v__entity_helper) | from_json) }}'
     v__entity:          '{{ v__entity_JSON.entity }}' 
     v__entity_type_def: '{{ v__entity_JSON.type }}'
-    v__entity_domain:   >
-      {% if v__entity is not none and v__entity != '' %}
-        {{ v__entity.split(".")[0] }}
-      {% else %}
-        'unknown'
-      {% endif %}   
+    v__entity_domain:   '{{ v__entity.split(".")[0] }}'    
     v__entity_info:     '{{ expand(v__entity) }}' #v__entity_state:    '{{ states[v__entity] }}'
     v__light_supported_color_mode: >
       {% set entity_id = v__entity %}
@@ -575,7 +572,7 @@ action:
       value_template: '{{ v__entity_type.startswith("LIGHT") }}'
     sequence:
       - choose:    
-
+        #ON / OFF
         - conditions: #ON 
           - condition: template
             value_template: '{{ v__command == "on" and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
@@ -635,10 +632,11 @@ action:
           - service: '{{ v__entity_domain }}.turn_off'
             target:
               entity_id: '{{ v__entity }}' 
-           
+
+        #BRIGHTNESS
         - conditions: #UP - increase light brightness 
           - condition: template
-            value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
+            value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up" and v__command_args1 != 254 and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
           sequence:
           - variables:
               v__current_brightness: '{{ (state_attr(v__entity, "brightness")) | int }}'       
@@ -652,11 +650,35 @@ action:
                 {% else %}
                 {{ v__current_brightness + v__brightness_step }}
                 {% endif %}
-              transition: '{{ v__brightness_transition_time }}'
+              transition: '{{ v__brightness_transition_time }}'       
+           
+        - conditions: #UP LP - increase light brightness - long press
+          - condition: template
+            value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Up"  and v__command_args1 == 254 and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
+          sequence:
+            - repeat:
+                while:
+                  - condition: template
+                    value_template: '{{ v__command != "stop" }}'
+                sequence:
+                  - variables:
+                      v__current_brightness: '{{ (state_attr(v__entity, "brightness")) | int }}'       
+                  - service: '{{ v__entity_domain }}.turn_on'
+                    target:
+                      entity_id: '{{ v__entity }}'
+                    data:
+                      brightness: >
+                        {% if v__current_brightness + (v__brightness_step/2) >= v__brightness_max %}
+                        {{ v__brightness_max }}
+                        {% else %}
+                        {{ v__current_brightness + (v__brightness_step/2) }}
+                        {% endif %}
+                      transition: '0.1'
+                  - delay: '00:00:00.1'
           
         - conditions: #DOWN - decrease light brightness 
           - condition: template
-            value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
+            value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down" and v__command_args1 != 254 and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
           sequence:
           - variables:
               v__current_brightness: '{{ (state_attr(v__entity, "brightness")) | int }}'    
@@ -671,10 +693,35 @@ action:
                 {{ v__current_brightness | int - v__brightness_step }}
                 {% endif %}
               transition: '{{ v__brightness_transition_time }}'
-          
+
+        - conditions: #DOWN LP - decrease light brightness - long press
+          - condition: template
+            value_template: '{{ v__command == "step" and v__command_args0 == "StepMode.Down"  and v__command_args1 == 254 and v__entity_type in ("LIGHT_COLOR_TEMP", "LIGHT_HS") }}'
+          sequence:
+            - repeat:
+                while:
+                  - condition: template
+                    value_template: '{{ v__command != "stop" }}'
+                sequence:
+                  - variables:
+                      v__current_brightness: '{{ (state_attr(v__entity, "brightness")) | int }}'       
+                  - service: '{{ v__entity_domain }}.turn_on'
+                    target:
+                      entity_id: '{{ v__entity }}'
+                    data:
+                      brightness: >
+                          {% if v__current_brightness <= (v__brightness_step/2) %}
+                          {{ v__brightness_min }}
+                          {% else %}
+                          {{ v__current_brightness | int - (v__brightness_step/2) }}
+                          {% endif %}
+                      transition: '0.1'
+                  - delay: '00:00:00.1'                     
+        
+        #COLOR TEMPERATURE
         - conditions: #DP-UP RED - higher color temperature 
           - condition: template
-            value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
+            value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and v__command_args1 != 301 and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
           sequence:
           - variables:
               v__current_color_temp: '{{ (state_attr(v__entity, "color_temp")) | int }}'
@@ -689,10 +736,34 @@ action:
                 {{ v__current_color_temp + v__color_step }}
                 {% endif %}
               transition: '{{ v__color_transition_time }}'
-               
+
+        - conditions: #DP-UP LP RED - higher color temperature - long press
+          - condition: template
+            value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Up" and v__command_args1 == 301 and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
+          sequence:
+            - repeat:
+                while:
+                  - condition: template
+                    value_template: '{{ v__command != "stop_move_step" }}'
+                sequence:
+                  - variables:
+                      v__current_color_temp: '{{ (state_attr(v__entity, "color_temp")) | int }}'
+                  - service: '{{ v__entity_domain }}.turn_on'
+                    target:
+                      entity_id: '{{ v__entity }}'
+                    data:
+                      color_temp: >
+                        {% if v__current_color_temp + (v__color_step/2) > 500 %}
+                        {{ 500 }}
+                        {% else %}
+                        {{ v__current_color_temp + (v__color_step/2) }}
+                        {% endif %}
+                      transition: '0.1'
+                  - delay: '00:00:00.1'
+                
         - conditions: #DP-DOWN RED - lower color temperature     
           - condition: template
-            value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down" and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
+            value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down" and v__command_args1 != 301 and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
           sequence:
           - variables:
               v__current_color_temp: '{{ (state_attr(v__entity, "color_temp")) | int }}'    
@@ -707,7 +778,32 @@ action:
                 {{ v__current_color_temp - v__color_step }}
                 {% endif %}
               transition: '{{ v__color_transition_time }}'
-            
+ 
+        - conditions: #DP-UP LP RED - higher color temperature - long press
+          - condition: template
+            value_template: '{{ v__command == "step_color_temp" and v__command_args0 == "StepMode.Down" and v__command_args1 == 301 and v__entity_type in ("LIGHT_COLOR_TEMP") }}'
+          sequence:
+            - repeat:
+                while:
+                  - condition: template
+                    value_template: '{{ v__command != "stop_move_step" }}'
+                sequence:
+                  - variables:
+                      v__current_color_temp: '{{ (state_attr(v__entity, "color_temp")) | int }}'    
+                  - service: '{{ v__entity_domain }}.turn_on'
+                    target:
+                      entity_id: '{{ v__entity }}'
+                    data:
+                      color_temp: >
+                        {% if v__current_color_temp - (v__color_step/2) < 153 %}
+                        {{ 153 }}
+                        {% else %}
+                        {{ v__current_color_temp - (v__color_step/2) }}
+                        {% endif %}                  
+                      transition: '0.1'
+                  - delay: '00:00:00.1'
+ 
+        #HUE / SATURATION
         - conditions: #DP-UP GREEN - higher color saturation 
           - condition: template
             value_template: '{{ v__command == "step_saturation" and v__command_args0 == "StepMode.Up" and v__entity_type in ("LIGHT_HS") }}'
@@ -969,7 +1065,7 @@ action:
 
         - conditions: #DOWN - volume down
             - condition: template
-              value_template: '{{ v__command == "step" and v__command_args0 in ("StepMode.Down") and v__command_args1 != 254 }}' 
+              value_template: '{{ v__command == "step" and v__command_args0 in ("StepMode.Down") and v__command_args1 != "254" }}' 
           sequence:
             - service: '{{ v__entity_domain }}.volume_down'
               target:
@@ -977,7 +1073,7 @@ action:
         
         - conditions: #LP-DOWN - long press - mute
             - condition: template
-              value_template: '{{ v__command == "step" and v__command_args0 in ("StepMode.Down") and v__command_args1 == 254 }}' 
+              value_template: '{{ v__command == "step" and v__command_args0 in ("StepMode.Down") and v__command_args1 == "254" }}' 
           sequence:
             - service: '{{ v__entity_domain }}.volume_mute'
               target:
