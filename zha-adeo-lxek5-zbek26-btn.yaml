@@ -43,7 +43,7 @@ variables:
      
      
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 buttons v1.2
+  name: SirYasko's LXEK-5/ZBEK-26 buttons v1.2.1
   description: |
     Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
     HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html
@@ -235,10 +235,10 @@ action:
 - variables: 
     v__debug_f:         !input i__debug_f
     v__debug_button:    !input i__debug_button
-    v__event:           '{% if trigger.event is defined %} trigger.event {% endif %}'
-    v__command:         '{% if trigger.event is defined %} trigger.event.data.command {% elif v__debug_button is not none %} debug_button {% endif %}'
-    v__command_args0:   '{% if trigger.event is defined %} trigger.event.data.args[0] {% elif v__debug_button is not none %} debug_args0  {% endif %}'
-    v__command_args1:   '{% if trigger.event is defined %} trigger.event.data.args[1] {% elif v__debug_button is not none %} debug_args1  {% endif %}'
+    v__event:           '{% if trigger.event is defined %} {{trigger.event}} {% endif %}'
+    v__command:         '{% if trigger.event is defined %} {{trigger.event.data.command}} {% elif v__debug_button is not none %} debug_button {% endif %}'
+    v__command_args0:   '{% if trigger.event is defined %} {{trigger.event.data.args[0]}} {% elif v__debug_button is not none %} debug_args0  {% endif %}'
+    v__command_args1:   '{% if trigger.event is defined %} {{trigger.event.data.args[1]}} {% elif v__debug_button is not none %} debug_args1  {% endif %}'
     v__button_pressed: >
       {% if   v__command == "debug_button"             and v__command_args0 == "debug_args0"   and v__command_args1 == "debug_args1" %} {{ v__debug_button }}
       {% elif v__command == "on"                       and v__command_args0 | length == 0      and v__command_args1 | length == 0    %} TURN_ON
