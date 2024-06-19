@@ -36,15 +36,14 @@ Works with:</br>
 </br>
 
 <b><a href="https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26-btn.yaml">zha-adeo-lxek5-zbek26-btn.yaml</a></b> - allows you to use the <b>Adeo LXEK-5/ZBEK-26</b> remote controller</br>
-via ZHA - a different approach - you can assign prepared scenes / automations and activate them with a button press.</br>
+via ZHA - a different approach - you can assign actions to buttons and activate them with a button press.</br>
 </p>
 <p>
 <a href="https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fgithub.com%2FSirYasko%2FHA-Blueprints%2Fblob%2Fmain%2Fzha-adeo-lxek5-zbek26-btn.yaml" target="_blank" rel="noreferrer noopener"><img src="https://my.home-assistant.io/badges/blueprint_import.svg" alt="Open your Home Assistant instance and show the blueprint import dialog with a specific blueprint pre-filled." /></a>
 </p>
 <p>
 Works with:</br>
-- scenes</br>
-- automations</br>
+- actions</br>
 </p>
 <p>To do:</br>
 - long press (press and hold button) </br>
