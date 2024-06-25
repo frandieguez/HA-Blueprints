@@ -18,6 +18,7 @@ via ZHA to control up to 4 devices or groups (lights, switches etc.).</br>
 <p>
 Works with:</br>
 - white lights with adjustable brightness and color temperature</br>
+- color lights with adjustable hue and saturation</br> 
 - lights with on/off support only</br>
 - switches (like smart plugs e.g. Xiaomi Mi Smart Wi-Fi Power Plug, Fibaro Wall Plug, etc.) - support on/off only</br>
 - fans - turning on/off, changing build-in modes (e.g. Xiaomi Smart Air Purifier, etc.) </br>
@@ -26,7 +27,6 @@ Works with:</br>
 - media-players: on/off/volume up-down/mute/play/pause/stop/next-previous track/next-previous source</br>
 </p>
 <p>To do:</br>
-- color lights with adjustable hue and saturation (asked Leroy Merlin Polska for support)</br>
 - long press (press and hold button)</br>
 - locks lock/unlock</br>
 - sirens on/off/volume etc.</br>
