@@ -43,9 +43,9 @@ variables:
      
      
 blueprint:
-  name: SirYasko's LXEK-5/ZBEK-26 buttons v1.2.1
+  name: SirYasko's LXEK-5/ZBEK-26 buttons v1.2.2
   description: |
-    Control entities via an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected trough ZHA 
+    Control various devices through an Adeo LXEK-5/ZBEK-26 (Leroy Merlin - Lexman) remote connected through ZHA 
     HR-C99C-Z-C045 - https://zigbee.blakadder.com/ADEO_HR-C99C-Z-C045.html
     ![Device Image](https://github.com/SirYasko/HA-Blueprints/raw/main/zha-adeo-lxek5-zbek26.png)
   source_url: https://github.com/SirYasko/HA-Blueprints/blob/main/zha-adeo-lxek5-zbek26-btn.yaml
