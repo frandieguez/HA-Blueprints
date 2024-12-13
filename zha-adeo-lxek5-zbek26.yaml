@@ -107,7 +107,7 @@ blueprint:
           default: null
           
     section_entity_config:
-      name: "## Entities configuration"
+      name: "Entities configuration"
       icon: mdi:cog
       description: ""
       collapsed: false
@@ -121,6 +121,10 @@ blueprint:
                 - integration: zha
                   model: LXEK-5
                 - integration: zha
+                  model: ZBEK-26
+                - integration: matter
+                  model: LXEK-5
+                - integration: matter
                   model: ZBEK-26
         
         i__entity_helper:
