@@ -83,8 +83,8 @@ blueprint:
       selector:
         device:
           filter:
-              integration: mqtt
-              domain: sensor
+             - integration: mqtt
+               domain: sensor
           #  - integration: zha
           #    model: LXEK-5
           #  - integration: zha
