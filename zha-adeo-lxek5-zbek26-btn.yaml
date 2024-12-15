@@ -80,9 +80,11 @@ blueprint:
     i__remote:
       name: (Required) Adeo LXEK-5/ZBEK-26 remote controller
       description: Select the remote controller you wish to use.
-      #selector:
-        #device:
-          #filter:
+      selector:
+        device:
+          filter:
+              integration: mqtt
+              domain: sensor
           #  - integration: zha
           #    model: LXEK-5
           #  - integration: zha
